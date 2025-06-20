@@ -8,4 +8,5 @@ readme = "README.md"
 packages = [{include = "auth_microservice_app"}]
 
 [tool.poetry.dependencies]
-python = "^3.11"
+python = "^3.12"
+flask = "^3.1.1"
