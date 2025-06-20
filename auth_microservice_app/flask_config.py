@@ -16,10 +16,8 @@ class Config:
             raise ValueError("No SECRET_KEY set for Flask application. Did you follow the setup instructions?")
         
         # Environment setting
-        self.ENV = os.environ.get('FLASK_ENV', 'prod')
+        self.FLASK_ENV = os.environ.get('FLASK_ENV', 'prod')
         self.ENV = self.FLASK_ENV  # Flask uses this internally
-
-        
         
         # Database configuration
         self.DATABASE_URL = os.environ.get(
