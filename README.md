@@ -1,6 +1,7 @@
 # auth_service
 
 #### Directory Structure
+
 auth-service/
 ├── pyproject.toml              # Poetry configuration
 ├── poetry.lock                 # Locked dependencies
@@ -11,8 +12,8 @@ auth-service/
 ├── docker-compose.yml          # Local development
 ├── app/
 │   ├── __init__.py
-│   ├── main.py                # Flask app initialization
-│   ├── config.py              # Configuration management
+│   ├── app.py                # Flask app initialization
+│   ├── flask_config.py              # Configuration management
 │   ├── auth/
 │   │   ├── __init__.py
 │   │   ├── routes.py
