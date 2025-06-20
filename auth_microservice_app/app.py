@@ -2,6 +2,7 @@ import os
 from flask import Flask, jsonify
 from datetime import datetime
 from auth_microservice_app.flask_config import Config
+from auth_microservice_app.routes import register_all_blueprints
 
 def create_app():
     """
@@ -16,6 +17,9 @@ def create_app():
 
     app= Flask(__name__)
     app.config.from_object(Config())
+
+    register_all_blueprints(app)
+
  
 
     return app
