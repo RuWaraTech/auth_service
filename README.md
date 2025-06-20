@@ -89,10 +89,10 @@ auth-service/
 **Description:** Implement configuration classes for different environments  
 
 **Acceptance Criteria:**
-- [ ] Create `config.py` with base Config class
-- [ ] Add environment-specific configs (Development, Testing, Production)
-- [ ] Load configuration from environment variables
-- [ ] `.env.example` file created
+- [X] Create `config.py` with base Config class
+- [X] Add environment-specific configs (dev, stag ,prod)
+- [X] Load configuration from environment variables
+- [X] `.env.example` file created
 
 **Files to create:**
 - `auth_microservice_app/config.py`

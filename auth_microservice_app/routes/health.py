@@ -10,7 +10,7 @@ def index():
         'service': 'Authentication Microservice',
         'version': '0.1.0',
         'status': 'running',
-        'environment': current_app.config.get('ENV', 'unknown'),
+        'environment': current_app.config.get('ENV', 'not set'),
         'debug': current_app.debug,
         'timestamp': datetime.utcnow().isoformat()
     })
