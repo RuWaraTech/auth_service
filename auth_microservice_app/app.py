@@ -16,7 +16,7 @@ def create_app():
     """
 
     app= Flask(__name__)
-    app.config.from_object(get_config)
+    app.config.from_object(get_config())
 
     register_all_blueprints(app)
 
