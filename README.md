@@ -89,7 +89,7 @@ auth-service/
 **Description:** Implement configuration classes for different environments  
 
 **Acceptance Criteria:**
-- [ ] Create `config.py` with base Config class
+- [X] Create `config.py` with base Config class
 - [ ] Add environment-specific configs (Development, Testing, Production)
 - [ ] Load configuration from environment variables
 - [ ] `.env.example` file created
