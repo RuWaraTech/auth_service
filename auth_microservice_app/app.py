@@ -1,7 +1,7 @@
 
 from flask import Flask
 
-from auth_microservice_app.flask_config import Config
+from auth_microservice_app.flask_config import get_config
 from auth_microservice_app.routes import register_all_blueprints
 
 def create_app():
@@ -16,7 +16,7 @@ def create_app():
     """
 
     app= Flask(__name__)
-    app.config.from_object(Config())
+    app.config.from_object(get_config)
 
     register_all_blueprints(app)
 
