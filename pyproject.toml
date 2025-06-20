@@ -10,3 +10,4 @@ packages = [{include = "auth_microservice_app"}]
 [tool.poetry.dependencies]
 python = "^3.12"
 flask = "^3.1.1"
+python-dotenv = "^1.1.0"
