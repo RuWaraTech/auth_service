@@ -1,0 +1,13 @@
+[tool.poetry]
+name = "auth_microservice_app"
+version = "0.1.0"
+description = "authentication microservice with JWT, OAuth, and 2FA"
+authors = ["Farai Wande <farai.wande@ruwara.tech>"]
+readme = "README.md"
+
+packages = [{include = "auth_microservice_app"}]
+
+[tool.poetry.dependencies]
+python = "^3.12"
+flask = "^3.1.1"
+python-dotenv = "^1.1.0"
