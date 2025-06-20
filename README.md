@@ -10,7 +10,7 @@ auth-service/
 ├── .gitignore
 ├── Dockerfile
 ├── docker-compose.yml          # Local development
-├── app/
+├── auth_microservice_app/
 │   ├── __init__.py
 │   ├── app.py                # Flask app initialization
 │   ├── flask_config.py              # Configuration management
