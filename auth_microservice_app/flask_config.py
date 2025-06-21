@@ -1,10 +1,11 @@
-# auth_microservice_app/config.py
 """
 Configuration classes for dev, stag, and prod environments
 """
 
 import os
+from datetime import timedelta
 from dotenv import load_dotenv
+
 load_dotenv()
 
 
@@ -32,10 +33,28 @@ class Config:
         # Security settings
         self.BCRYPT_LOG_ROUNDS = int(os.environ.get('BCRYPT_LOG_ROUNDS', '12'))
         
-        # JWT Settings (for future use)
+        # JWT Settings - Updated for Flask-JWT-Extended
         self.JWT_SECRET_KEY = os.environ.get('JWT_SECRET_KEY', self.SECRET_KEY)
-        self.JWT_ACCESS_TOKEN_EXPIRES = int(os.environ.get('JWT_ACCESS_TOKEN_EXPIRES', '900'))  # 15 minutes
-        self.JWT_REFRESH_TOKEN_EXPIRES = int(os.environ.get('JWT_REFRESH_TOKEN_EXPIRES', '2592000'))  # 30 days
+        self.JWT_ALGORITHM = 'HS256'
+        
+        # Token expiration times (Flask-JWT-Extended expects timedelta objects)
+        access_token_expires = int(os.environ.get('JWT_ACCESS_TOKEN_EXPIRES', '900'))  # 15 minutes default
+        refresh_token_expires = int(os.environ.get('JWT_REFRESH_TOKEN_EXPIRES', '2592000'))  # 30 days default
+        
+        self.JWT_ACCESS_TOKEN_EXPIRES = timedelta(seconds=access_token_expires)
+        self.JWT_REFRESH_TOKEN_EXPIRES = timedelta(seconds=refresh_token_expires)
+        
+        # Token locations
+        self.JWT_TOKEN_LOCATION = ['headers']  # Can also include 'cookies'
+        self.JWT_HEADER_NAME = 'Authorization'
+        self.JWT_HEADER_TYPE = 'Bearer'
+        
+        # Error message key
+        self.JWT_ERROR_MESSAGE_KEY = 'message'
+        
+        # Blacklist settings (for future Redis integration)
+        self.JWT_BLACKLIST_ENABLED = True
+        self.JWT_BLACKLIST_TOKEN_CHECKS = ['access', 'refresh']
         
         # API settings
         self.API_VERSION = 'v1'
@@ -43,6 +62,10 @@ class Config:
         
         # Redis configuration (for future use)
         self.REDIS_URL = os.environ.get('REDIS_URL', 'redis://localhost:6379/0')
+        self.REDIS_HOST = os.environ.get('REDIS_HOST', 'localhost')
+        self.REDIS_PORT = int(os.environ.get('REDIS_PORT', '6379'))
+        self.REDIS_DB = int(os.environ.get('REDIS_DB', '0'))
+        self.REDIS_PASSWORD = os.environ.get('REDIS_PASSWORD', None)
         
         # Rate limiting
         self.RATE_LIMIT_DEFAULT = os.environ.get('RATE_LIMIT_DEFAULT', '100 per hour')
@@ -61,6 +84,10 @@ class DevConfig(Config):
             os.environ['SECRET_KEY'] = 'dev-secret-key-UNSAFE-ONLY-FOR-DEV'
             print("Warning: Using default SECRET_KEY for development")
         
+        if not os.environ.get('JWT_SECRET_KEY'):
+            os.environ['JWT_SECRET_KEY'] = 'dev-jwt-secret-key-UNSAFE-ONLY-FOR-DEV'
+            print("Warning: Using default JWT_SECRET_KEY for development")
+        
         super().__init__()
         
         # Development specific settings
@@ -70,6 +97,10 @@ class DevConfig(Config):
         # Override for dev
         self.DATABASE_URL = os.environ.get('DATABASE_URL', 'sqlite:///dev.db')
         self.SQLALCHEMY_DATABASE_URI = self.DATABASE_URL
+        
+        # Longer token expiration for development convenience
+        self.JWT_ACCESS_TOKEN_EXPIRES = timedelta(hours=1)
+        self.JWT_REFRESH_TOKEN_EXPIRES = timedelta(days=90)
         
         # More permissive rate limiting for development
         self.RATE_LIMIT_DEFAULT = '1000 per hour'
@@ -98,6 +129,10 @@ class StagConfig(Config):
         # Staging should mirror production closely
         self.SQLALCHEMY_ECHO = False
         
+        # Standard token expiration for staging
+        self.JWT_ACCESS_TOKEN_EXPIRES = timedelta(minutes=30)
+        self.JWT_REFRESH_TOKEN_EXPIRES = timedelta(days=30)
+        
         # Moderate rate limiting for staging
         self.RATE_LIMIT_DEFAULT = '200 per hour'
         
@@ -109,6 +144,10 @@ class StagConfig(Config):
         # SECRET_KEY should be different from default
         if 'dev-secret-key' in self.SECRET_KEY.lower():
             raise ValueError("Cannot use development SECRET_KEY in staging")
+        
+        # JWT_SECRET_KEY should be different from default
+        if 'dev-jwt-secret-key' in self.JWT_SECRET_KEY.lower():
+            raise ValueError("Cannot use development JWT_SECRET_KEY in staging")
         
         # Should have proper database URL
         if 'localhost' in self.DATABASE_URL:
@@ -129,6 +168,10 @@ class ProdConfig(Config):
         # No SQL echo in production
         self.SQLALCHEMY_ECHO = False
         
+        # Strict token expiration in production
+        self.JWT_ACCESS_TOKEN_EXPIRES = timedelta(minutes=15)
+        self.JWT_REFRESH_TOKEN_EXPIRES = timedelta(days=30)
+        
         # Strict rate limiting in production
         self.RATE_LIMIT_DEFAULT = os.environ.get('RATE_LIMIT_DEFAULT', '60 per hour')
         
@@ -144,6 +187,13 @@ class ProdConfig(Config):
         if 'dev-secret-key' in self.SECRET_KEY.lower() or 'unsafe' in self.SECRET_KEY.lower():
             raise ValueError("Cannot use development SECRET_KEY in production")
         
+        # JWT_SECRET_KEY validation
+        if len(self.JWT_SECRET_KEY) < 32:
+            raise ValueError("JWT_SECRET_KEY must be at least 32 characters in production")
+        
+        if 'dev-jwt-secret-key' in self.JWT_SECRET_KEY.lower() or 'unsafe' in self.JWT_SECRET_KEY.lower():
+            raise ValueError("Cannot use development JWT_SECRET_KEY in production")
+        
         # Database validation
         if 'localhost' in self.DATABASE_URL or 'password' in self.DATABASE_URL:
             raise ValueError("Production DATABASE_URL appears to use default/local settings")
@@ -157,11 +207,45 @@ class ProdConfig(Config):
             raise ValueError("CORS cannot use wildcard (*) in production. Set specific origins.")
 
 
+class TestConfig(Config):
+    """Testing configuration."""
+    
+    def __init__(self):
+        # Set test defaults
+        os.environ.setdefault('FLASK_ENV', 'test')
+        os.environ.setdefault('SECRET_KEY', 'test-secret-key')
+        os.environ.setdefault('JWT_SECRET_KEY', 'test-jwt-secret-key')
+        
+        super().__init__()
+        
+        # Test specific settings
+        self.DEBUG = False
+        self.TESTING = True
+        
+        # Use in-memory SQLite for tests
+        self.DATABASE_URL = 'sqlite:///:memory:'
+        self.SQLALCHEMY_DATABASE_URI = self.DATABASE_URL
+        
+        # Very short token expiration for testing
+        self.JWT_ACCESS_TOKEN_EXPIRES = timedelta(seconds=60)
+        self.JWT_REFRESH_TOKEN_EXPIRES = timedelta(minutes=2)
+        
+        # Disable rate limiting in tests
+        self.RATE_LIMIT_DEFAULT = None
+        
+        # Fast password hashing for tests
+        self.BCRYPT_LOG_ROUNDS = 4
+        
+        # Disable SQL echo in tests
+        self.SQLALCHEMY_ECHO = False
+
+
 # Configuration mapping
 config_map = {
     'dev': DevConfig,
     'stag': StagConfig,
-    'prod': ProdConfig
+    'prod': ProdConfig,
+    'test': TestConfig
 }
 
 
@@ -171,6 +255,6 @@ def get_config():
     
     config_class = config_map.get(env)
     if not config_class:
-        raise ValueError(f"Unknown environment: {env}. Use 'dev', 'stag', or 'prod'")
+        raise ValueError(f"Unknown environment: {env}. Use 'dev', 'stag', 'prod', or 'test'")
     
     return config_class()
