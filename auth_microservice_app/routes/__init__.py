@@ -1,40 +1,28 @@
-"""
-Register all application blueprints with the Flask app.
-This module imports and registers all blueprints for the application.
-Each blueprint corresponds to a specific functionality or route group.
-The blueprints are registered without a prefix for health and monitoring routes,
-and with an API version prefix for other routes.
-The health blueprint is available at the root URL.
-"""
 
 from auth_microservice_app.routes.health import health_bp
+from auth_microservice_app.routes.auth import auth_bp
+
 
 # Export all blueprints
-__all__ = ['health_bp']
+__all__ = ['health_bp', 'auth_bp']
 
 
 # Function to register all blueprints
 def register_all_blueprints(app):
     """Register all application blueprints with the Flask app."""
+  
     
-    # Health and monitoring routes (no prefix - available at root)
+    api_prefix = f"/api/{app.config.get('API_VERSION', 'v1')}"
+    app.register_blueprint(auth_bp, url_prefix=f"{api_prefix}/auth")
     app.register_blueprint(health_bp)
     
-    # JWT Test routes (temporary for TICKET-005 testing)
-    try:
-        from auth_microservice_app.routes.test_jwt import jwt_test_bp
-        api_prefix = f"/api/{app.config.get('API_VERSION', 'v1')}"
-        app.register_blueprint(jwt_test_bp, url_prefix=f"{api_prefix}/test")
-        app.logger.info(f"JWT test routes registered at {api_prefix}/test")
-    except ImportError:
-        app.logger.info("JWT test routes not found (this is normal in production)")
     
-    # Future blueprints with API versioning:
-    # from auth_microservice_app.routes.auth import auth_bp
-    # from auth_microservice_app.routes.oauth import oauth_bp
-    # from auth_microservice_app.routes.user import user_bp
     
-    # api_prefix = f"/api/{app.config.get('API_VERSION', 'v1')}"
-    # app.register_blueprint(auth_bp, url_prefix=f"{api_prefix}/auth")
-    # app.register_blueprint(oauth_bp, url_prefix=f"{api_prefix}/oauth")
-    # app.register_blueprint(user_bp, url_prefix=f"{api_prefix}/user")
+    
+    
+    
+    
+    
+   
+    
+ 
