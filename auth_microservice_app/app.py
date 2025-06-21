@@ -8,6 +8,7 @@ from auth_microservice_app.routes import register_all_blueprints
 from auth_microservice_app.utils.logger import setup_logger
 from auth_microservice_app.middleware.logging import request_id_middleware
 from auth_microservice_app.utils.jwt_utils import init_jwt
+from auth_microservice_app.utils.redis_client import init_redis
 
 
 def create_app():
@@ -26,6 +27,7 @@ def create_app():
 
     setup_logger()
     request_id_middleware(app)
+    init_redis(app)
     init_jwt(app)
 
     db.init_app(app)
