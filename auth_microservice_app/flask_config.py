@@ -60,12 +60,16 @@ class Config:
         self.API_VERSION = 'v1'
         self.API_TITLE = 'Authentication Microservice'
         
-        # Redis configuration (for future use)
+        # Redis configuration (TICKET-006)
         self.REDIS_URL = os.environ.get('REDIS_URL', 'redis://localhost:6379/0')
         self.REDIS_HOST = os.environ.get('REDIS_HOST', 'localhost')
         self.REDIS_PORT = int(os.environ.get('REDIS_PORT', '6379'))
         self.REDIS_DB = int(os.environ.get('REDIS_DB', '0'))
         self.REDIS_PASSWORD = os.environ.get('REDIS_PASSWORD', None)
+        self.REDIS_DECODE_RESPONSES = True
+        self.REDIS_MAX_CONNECTIONS = 50
+        self.REDIS_SOCKET_TIMEOUT = 5
+        self.REDIS_SOCKET_CONNECT_TIMEOUT = 5
         
         # Rate limiting
         self.RATE_LIMIT_DEFAULT = os.environ.get('RATE_LIMIT_DEFAULT', '100 per hour')
@@ -227,8 +231,8 @@ class TestConfig(Config):
         self.SQLALCHEMY_DATABASE_URI = self.DATABASE_URL
         
         # Very short token expiration for testing
-        self.JWT_ACCESS_TOKEN_EXPIRES = timedelta(seconds=60)
-        self.JWT_REFRESH_TOKEN_EXPIRES = timedelta(minutes=2)
+        self.JWT_ACCESS_TOKEN_EXPIRES = timedelta(seconds=5)
+        self.JWT_REFRESH_TOKEN_EXPIRES = timedelta(minutes=1)
         
         # Disable rate limiting in tests
         self.RATE_LIMIT_DEFAULT = None
