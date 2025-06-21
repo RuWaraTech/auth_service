@@ -21,7 +21,7 @@ def create_app():
     app.config.from_object(get_config())
 
     db.init_app(app)
-    migrate = Migrate(app, db)
+    Migrate(app, db)
 
     register_all_blueprints(app)
 
