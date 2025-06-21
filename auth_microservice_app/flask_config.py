@@ -4,6 +4,8 @@ Configuration classes for dev, stag, and prod environments
 """
 
 import os
+from dotenv import load_dotenv
+load_dotenv()
 
 
 class Config:

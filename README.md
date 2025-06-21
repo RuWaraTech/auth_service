@@ -1,5 +1,50 @@
 # auth_service
 
+
+## System Requirements
+
+The project uses poetry for Python to create an isolated environment and manage package dependencies. To prepare your system, ensure you have an official distribution of Python version 3.12+ and install Poetry using one of the following commands (as instructed by the [poetry documentation](https://python-poetry.org/docs/#system-requirements)):
+
+### Poetry installation (Bash)
+
+```bash
+curl -sSL https://install.python-poetry.org | python3 -
+```
+
+### Poetry installation (PowerShell)
+
+```powershell
+(Invoke-WebRequest -Uri https://install.python-poetry.org -UseBasicParsing).Content | py -
+```
+
+## Dependencies
+
+The project uses a virtual environment to isolate package dependencies. To create the virtual environment and install required packages, run the following from your preferred shell:
+
+```bash
+$ poetry install
+```
+
+You'll also need to clone a new `.env` file from the `.env.template` to store local configuration options. This is a one-time operation on first setup:
+
+```bash
+$ cp .env.template .env  # (first time only)
+
+```
+# Running the App
+
+Once the all dependencies have been installed, start the Flask app in development mode within the Poetry environment by running:
+```bash
+$ poetry run gunicorn "auth_microservice_app.app:create_app()" \
+  --bind 0.0.0.0:8000 \
+  --workers 4 \
+  --threads 2 \
+  --timeout 60 \
+  --log-level info \
+  --access-logfile - \
+  --error-logfile - \
+  --capture-output
+```
 #### Directory Structure
 
 auth-service/
@@ -128,11 +173,11 @@ auth-service/
 **Description:** Implement structured JSON logging  
 
 **Acceptance Criteria:**
-- [ ] Configure Python JSON logger
-- [ ] Environment-based log levels
-- [ ] Structured logging format
-- [ ] Request ID tracking
-- [ ] Logs work in both dev and production
+- [X] Configure Python JSON logger
+- [X] Environment-based log levels
+- [X] Structured logging format
+- [X] Request ID tracking
+- [X] Logs work in both dev and production
 
 ---
 
