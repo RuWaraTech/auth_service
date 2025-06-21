@@ -1,7 +1,7 @@
 from flask import Blueprint, jsonify, current_app
 from auth_microservice_app.models import db
 from datetime import datetime
-
+from sqlalchemy import text
 health_bp = Blueprint('health', __name__)
 
 @health_bp.route('/')
@@ -25,17 +25,13 @@ def health_check():
         'timestamp': datetime.utcnow().isoformat()
     }), 200
 
-
 def check_database():
-    """
-    Placeholder for database readiness check.
-    This function should implement actual database connection checks.
-    """
     try:
-        db.session.execute('SELECT 1')
+        with db.engine.connect() as conn:
+            conn.execute(text('SELECT 1'))
         return True
     except Exception as e:
-        current_app.logger.error(f"Database check failed: {e}")
+        current_app.logger.error(f"❌ Database check failed: {e}")
         return False
 
 @health_bp.route('/ready')
