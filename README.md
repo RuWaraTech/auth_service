@@ -45,6 +45,33 @@ $ poetry run gunicorn "auth_microservice_app.app:create_app()" \
   --error-logfile - \
   --capture-output
 ```
+
+## Remove for Prod 
+### 1. Create tokens
+```bash
+curl -X POST http://0.0.0.0:8000/api/v1/test/create-tokens
+```
+#### Save the tokens (example):
+ACCESS_TOKEN="<copy-access-token-here>"
+REFRESH_TOKEN="<copy-refresh-token-here>"
+
+### 2. Test protected route
+```bash
+curl -X GET http://0.0.0.0:8000/api/v1/test/protected \
+  -H "Authorization: Bearer $ACCESS_TOKEN"
+```
+### 3. Test fresh token required
+```bash
+curl -X GET http://0.0.0.0:8000/api/v1/test/fresh-required \
+  -H "Authorization: Bearer $ACCESS_TOKEN"
+```
+### 4. Test refresh
+```bash
+curl -X POST http://0.0.0.0:8000/api/v1/test/refresh \
+  -H "Authorization: Bearer $REFRESH_TOKEN"
+```
+
+
 #### Directory Structure
 
 auth-service/
@@ -190,11 +217,11 @@ auth-service/
 **Description:** Implement JWT token management with Flask-JWT-Extended  
 
 **Acceptance Criteria:**
-- [ ] JWT manager initialized
-- [ ] Token creation utilities
-- [ ] Token validation
-- [ ] Error handlers for expired/invalid tokens
-- [ ] Access and refresh token support
+- [X] JWT manager initialized
+- [X] Token creation utilities
+- [X] Token validation
+- [X] Error handlers for expired/invalid tokens
+- [X] Access and refresh token support
 
 ---
 
