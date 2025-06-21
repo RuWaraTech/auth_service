@@ -232,11 +232,11 @@ auth-service/
 **Description:** Add Redis for JWT token revocation  
 
 **Acceptance Criteria:**
-- [ ] Redis client initialization
-- [ ] Token blacklist checking
-- [ ] Token revocation endpoint
-- [ ] Redis health check
-- [ ] Graceful fallback if Redis unavailable
+- [X] Redis client initialization
+- [X] Token blacklist checking
+- [X] Token revocation endpoint
+- [X] Redis health check
+- [X] Graceful fallback if Redis unavailable
 
 ---
 
