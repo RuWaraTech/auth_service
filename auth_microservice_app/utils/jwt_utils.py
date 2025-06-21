@@ -45,8 +45,7 @@ def init_jwt(app):
         # Check if user has been logged out from all devices
         user_id = jwt_payload.get("sub")
         if user_id and redis_client.is_user_logged_out_all(user_id):
-            # Check if token was issued before logout_all
-            # This prevents old tokens from being used after logout_all
+            # User has been logged out from all devices; revoke all tokens
             return True
         
         # Check if specific token is blacklisted
