@@ -5,6 +5,9 @@ from auth_microservice_app.models import db
 
 from auth_microservice_app.flask_config import get_config
 from auth_microservice_app.routes import register_all_blueprints
+from auth_microservice_app.utils.logger import setup_logger
+from auth_microservice_app.middleware.logging import request_id_middleware
+
 
 def create_app():
     """
@@ -19,6 +22,9 @@ def create_app():
 
     app= Flask(__name__)
     app.config.from_object(get_config())
+
+    setup_logger()
+    request_id_middleware(app)
 
     db.init_app(app)
     Migrate(app, db)
