@@ -64,6 +64,10 @@ class DevConfig(Config):
         # Development specific settings
         self.DEBUG = True
         self.TESTING = False
+
+        # Override for dev
+        self.DATABASE_URL = os.environ.get('DATABASE_URL', 'sqlite:///dev.db')
+        self.SQLALCHEMY_DATABASE_URI = self.DATABASE_URL
         
         # More permissive rate limiting for development
         self.RATE_LIMIT_DEFAULT = '1000 per hour'

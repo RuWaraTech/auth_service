@@ -108,11 +108,11 @@ auth-service/
 **Description:** Integrate SQLAlchemy and Flask-Migrate  
 
 **Acceptance Criteria:**
-- [ ] Add SQLAlchemy to app.py
-- [ ] Add Flask-Migrate for database migrations
-- [ ] Create database connection with proper pooling
-- [ ] Health check includes database connectivity
-- [ ] Migration commands working
+- [X] Add SQLAlchemy to app.py
+- [X] Add Flask-Migrate for database migrations
+- [X] Create database connection with proper pooling
+- [X] Health check includes database connectivity
+- [X] Migration commands working
 
 **Updates to app.py:**
 - Initialize `db = SQLAlchemy()`

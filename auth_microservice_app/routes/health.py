@@ -1,6 +1,7 @@
 from flask import Blueprint, jsonify, current_app
+from auth_microservice_app.models import db
 from datetime import datetime
-
+from sqlalchemy import text
 health_bp = Blueprint('health', __name__)
 
 @health_bp.route('/')
@@ -24,6 +25,15 @@ def health_check():
         'timestamp': datetime.utcnow().isoformat()
     }), 200
 
+def check_database():
+    try:
+        with db.engine.connect() as conn:
+            conn.execute(text('SELECT 1'))
+        return True
+    except Exception as e:
+        current_app.logger.error(f"❌ Database check failed: {e}")
+        return False
+
 @health_bp.route('/ready')
 def readiness_check():
     """
@@ -32,7 +42,7 @@ def readiness_check():
     """
     checks = {
         'app': True,
-        # Future: 'database': check_database(),
+        'database': check_database(),  
         # Future: 'redis': check_redis(),
     }
     
@@ -45,8 +55,11 @@ def readiness_check():
         'timestamp': datetime.utcnow().isoformat()
     }), status_code
 
+
 @health_bp.route('/ping')
 def ping():
     """Simple ping endpoint."""
     return jsonify({'pong': True}), 200
+
+
 
