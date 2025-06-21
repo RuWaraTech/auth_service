@@ -1,25 +1,59 @@
+"""
+JWT token management utilities for authentication.
+Implements TICKET-005: JWT Integration with Flask-JWT-Extended
+Updated for TICKET-006: Redis Integration for Token Blacklist
+"""
 from datetime import datetime, timezone
 from typing import Optional, Dict, Any, Tuple
 import logging
 
-
-from flask import jsonify
+from flask import jsonify, current_app
 from flask_jwt_extended import (
-    JWTManager, create_access_token, create_refresh_token, decode_token, get_jwt, get_jwt_identity
+    JWTManager, 
+    create_access_token, 
+    create_refresh_token, 
+    decode_token,
+    get_jwt,
+    get_jwt_identity
 )
 
+from auth_microservice_app.utils.redis_client import redis_client
+
 logger = logging.getLogger(__name__)
+
+# Initialize JWT Manager
 jwt = JWTManager()
+
 
 def init_jwt(app):
     """
-    Initialize JWT manager with the Flask app.
+    Initialize JWT manager with error handlers and Redis blacklist.
     
     Args:
         app: Flask application instance
     """
     jwt.init_app(app)
-
+    
+    # Token blacklist loader - check if token is revoked in Redis
+    @jwt.token_in_blocklist_loader
+    def check_if_token_revoked(jwt_header: Dict[str, Any], jwt_payload: Dict[str, Any]) -> bool:
+        """Check if the token has been revoked via Redis blacklist."""
+        jti = jwt_payload.get("jti")
+        if not jti:
+            return True
+        
+        # Check if user has been logged out from all devices
+        user_id = jwt_payload.get("sub")
+        if user_id and redis_client.is_user_logged_out_all(user_id):
+            # Check if token was issued before logout_all
+            # This prevents old tokens from being used after logout_all
+            return True
+        
+        # Check if specific token is blacklisted
+        token_type = jwt_payload.get("type", "access")
+        return redis_client.is_token_blacklisted(jti, token_type)
+    
+    # Register error handlers
     
     @jwt.expired_token_loader
     def expired_token_callback(jwt_header: Dict[str, Any], jwt_payload: Dict[str, Any]):
@@ -29,7 +63,7 @@ def init_jwt(app):
             "error": "token_expired",
             "message": "The access token has expired. Please refresh your token."
         }), 401
-        
+    
     @jwt.invalid_token_loader
     def invalid_token_callback(error: str):
         """Handle invalid token errors."""
@@ -38,7 +72,7 @@ def init_jwt(app):
             "error": "invalid_token",
             "message": f"Token validation failed: {error}"
         }), 422
-        
+    
     @jwt.unauthorized_loader
     def missing_token_callback(error: str):
         """Handle missing authorization header."""
@@ -46,7 +80,7 @@ def init_jwt(app):
             "error": "authorization_required",
             "message": "Missing Authorization Header. Please provide a valid token."
         }), 401
-        
+    
     @jwt.revoked_token_loader
     def revoked_token_callback(jwt_header: Dict[str, Any], jwt_payload: Dict[str, Any]):
         """Handle revoked token."""
@@ -181,6 +215,67 @@ def get_token_remaining_time() -> Optional[int]:
         return int(exp_timestamp - current_timestamp)
     
     return None
+
+
+def revoke_token(jti: str, token_type: str = "access", expires_delta: int = None) -> bool:
+    """
+    Revoke a token by adding it to the Redis blacklist.
+    
+    Args:
+        jti: JWT ID from the token
+        token_type: Type of token (access/refresh)
+        expires_delta: Seconds until token naturally expires
+        
+    Returns:
+        Success status
+    """
+    try:
+        success = redis_client.add_token_to_blacklist(jti, token_type, expires_delta)
+        if success:
+            logger.info(f"Token {jti} revoked successfully")
+        else:
+            logger.warning(f"Failed to revoke token {jti} - Redis may be unavailable")
+        return success
+    except Exception as e:
+        logger.error(f"Error revoking token: {e}")
+        return False
+
+
+def revoke_all_user_tokens(user_id: str) -> bool:
+    """
+    Revoke all tokens for a specific user (logout from all devices).
+    
+    Args:
+        user_id: User identifier
+        
+    Returns:
+        Success status
+    """
+    try:
+        count = redis_client.clear_user_tokens(user_id)
+        if count > 0:
+            logger.info(f"All tokens revoked for user {user_id}")
+            return True
+        else:
+            logger.warning(f"Failed to revoke all tokens for user {user_id}")
+            return False
+    except Exception as e:
+        logger.error(f"Error revoking all user tokens: {e}")
+        return False
+
+
+def is_token_revoked(jti: str, token_type: str = "access") -> bool:
+    """
+    Check if a token is revoked.
+    
+    Args:
+        jti: JWT ID to check
+        token_type: Type of token
+        
+    Returns:
+        True if revoked, False otherwise
+    """
+    return redis_client.is_token_blacklisted(jti, token_type)
 
 
 def is_token_fresh() -> bool:
