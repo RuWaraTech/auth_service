@@ -4,7 +4,7 @@ Redis client for JWT token blacklist management.
 
 import os
 import socket
-import logging 
+import logging
 from typing import Optional, Dict, Any
 import redis
 from redis.exceptions import ConnectionError, TimeoutError, RedisError
@@ -223,9 +223,9 @@ class RedisClient:
             
         try:
             # Count blacklisted tokens
-            access_tokens = len(list(self._client.scan_iter("blacklist:access:*")))
-            refresh_tokens = len(list(self._client.scan_iter("blacklist:refresh:*")))
-            logout_all_users = len(list(self._client.scan_iter("user:logout_all:*")))
+            access_tokens = sum(1 for _ in self._client.scan_iter("blacklist:access:*", count=1000))
+            refresh_tokens = sum(1 for _ in self._client.scan_iter("blacklist:refresh:*", count=1000))
+            logout_all_users = sum(1 for _ in self._client.scan_iter("user:logout_all:*", count=1000))
             
             return {
                 "access_tokens_blacklisted": access_tokens,
