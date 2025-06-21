@@ -3,7 +3,7 @@ Redis client for JWT token blacklist management.
 """
 
 import os
-
+import socket
 import logging 
 from typing import Optional, Dict, Any
 import redis
@@ -49,10 +49,11 @@ class RedisClient:
                 socket_connect_timeout=socket_connect_timeout,
                 socket_keepalive=True,
                 socket_keepalive_options={
-                    1: 1,  # TCP_KEEPIDLE
-                    2: 2,  # TCP_KEEPINTVL
-                    3: 5,  # TCP_KEEPCNT
-                }
+                socket.TCP_KEEPIDLE: 1,
+                socket.TCP_KEEPINTVL: 2,
+                socket.TCP_KEEPCNT: 5,
+                }   
+
             )
             
             # Create Redis client
