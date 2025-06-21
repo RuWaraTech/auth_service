@@ -1,4 +1,5 @@
 from flask import Blueprint, jsonify, current_app
+from auth_microservice_app.models import db
 from datetime import datetime
 
 health_bp = Blueprint('health', __name__)
@@ -24,6 +25,19 @@ def health_check():
         'timestamp': datetime.utcnow().isoformat()
     }), 200
 
+
+def check_database():
+    """
+    Placeholder for database readiness check.
+    This function should implement actual database connection checks.
+    """
+    try:
+        db.session.execute('SELECT 1')
+        return True
+    except Exception as e:
+        current_app.logger.error(f"Database check failed: {e}")
+        return False
+
 @health_bp.route('/ready')
 def readiness_check():
     """
@@ -32,7 +46,7 @@ def readiness_check():
     """
     checks = {
         'app': True,
-        # Future: 'database': check_database(),
+        'database': check_database(),  
         # Future: 'redis': check_redis(),
     }
     
@@ -45,8 +59,11 @@ def readiness_check():
         'timestamp': datetime.utcnow().isoformat()
     }), status_code
 
+
 @health_bp.route('/ping')
 def ping():
     """Simple ping endpoint."""
     return jsonify({'pong': True}), 200
+
+
 
