@@ -1,8 +1,3 @@
-
-"""
-Utils module initialization.
-Exports commonly used utilities.
-"""
 from auth_microservice_app.utils.jwt_utils import (
     jwt,
     init_jwt,
@@ -12,9 +7,13 @@ from auth_microservice_app.utils.jwt_utils import (
     get_token_identity,
     get_current_token_claims,
     get_token_remaining_time,
-    is_token_fresh
+    is_token_fresh,
+    revoke_token,
+    revoke_all_user_tokens,
+    is_token_revoked
 )
 from auth_microservice_app.utils.logger import setup_logger
+from auth_microservice_app.utils.redis_client import redis_client, init_redis
 
 __all__ = [
     # JWT utilities
@@ -27,6 +26,12 @@ __all__ = [
     "get_current_token_claims",
     "get_token_remaining_time",
     "is_token_fresh",
+    "revoke_token",
+    "revoke_all_user_tokens",
+    "is_token_revoked",
     # Logger
     "setup_logger",
+    # Redis
+    "redis_client",
+    "init_redis",
 ]

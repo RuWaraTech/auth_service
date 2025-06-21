@@ -1,38 +1,38 @@
-
 from flask import Flask
 from flask_migrate import Migrate
 from auth_microservice_app.models import db
-
 from auth_microservice_app.flask_config import get_config
 from auth_microservice_app.routes import register_all_blueprints
-from auth_microservice_app.utils.logger import setup_logger
+from auth_microservice_app.utils import setup_logger, init_jwt, init_redis
 from auth_microservice_app.middleware.logging import request_id_middleware
-from auth_microservice_app.utils.jwt_utils import init_jwt
-
 
 def create_app():
     """
     Application factory pattern for Flask app creation.
     
-    Args:
-        config_name: Configuration environment name (development, production, etc.)
-    
     Returns:
         Flask application instance
     """
-
-    app= Flask(__name__)
+    app = Flask(__name__)
+    
+    # Load configuration
     app.config.from_object(get_config())
-
+    
+    # Initialize logging
     setup_logger()
     request_id_middleware(app)
+    
+    # Initialize Redis (TICKET-006)
+    init_redis(app)
+    
+    # Initialize JWT with Redis blacklist support
     init_jwt(app)
-
+    
+    # Initialize database
     db.init_app(app)
     Migrate(app, db)
-
+    
+    # Register blueprints
     register_all_blueprints(app)
-
-
+    
     return app
-
