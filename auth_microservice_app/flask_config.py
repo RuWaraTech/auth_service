@@ -227,8 +227,8 @@ class TestConfig(Config):
         self.SQLALCHEMY_DATABASE_URI = self.DATABASE_URL
         
         # Very short token expiration for testing
-        self.JWT_ACCESS_TOKEN_EXPIRES = timedelta(seconds=5)
-        self.JWT_REFRESH_TOKEN_EXPIRES = timedelta(minutes=1)
+        self.JWT_ACCESS_TOKEN_EXPIRES = timedelta(seconds=60)
+        self.JWT_REFRESH_TOKEN_EXPIRES = timedelta(minutes=2)
         
         # Disable rate limiting in tests
         self.RATE_LIMIT_DEFAULT = None
