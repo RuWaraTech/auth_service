@@ -134,6 +134,7 @@ auth-service/
 - [X] Request ID tracking
 - [X] Logs work in both dev and production
 
+
 ---
 
 ## Epic 2: Authentication Core (JWT & Security)
