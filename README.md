@@ -1,5 +1,35 @@
 # auth_service
 
+
+## System Requirements
+
+The project uses poetry for Python to create an isolated environment and manage package dependencies. To prepare your system, ensure you have an official distribution of Python version 3.8+ and install Poetry using one of the following commands (as instructed by the [poetry documentation](https://python-poetry.org/docs/#system-requirements)):
+
+### Poetry installation (Bash)
+
+```bash
+curl -sSL https://install.python-poetry.org | python3 -
+```
+
+### Poetry installation (PowerShell)
+
+```powershell
+(Invoke-WebRequest -Uri https://install.python-poetry.org -UseBasicParsing).Content | py -
+```
+
+## Dependencies
+
+The project uses a virtual environment to isolate package dependencies. To create the virtual environment and install required packages, run the following from your preferred shell:
+
+```bash
+$ poetry install
+```
+
+You'll also need to clone a new `.env` file from the `.env.template` to store local configuration options. This is a one-time operation on first setup:
+
+```bash
+$ cp .env.template .env  # (first time only)
+```
 #### Directory Structure
 
 auth-service/
