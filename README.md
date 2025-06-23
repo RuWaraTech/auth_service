@@ -267,12 +267,12 @@ auth-service/
 **Description:** Implement core authentication endpoints  
 
 **Acceptance Criteria:**
-- [ ] POST /api/v1/auth/register
-- [ ] POST /api/v1/auth/login  
-- [ ] POST /api/v1/auth/logout
-- [ ] POST /api/v1/auth/refresh
-- [ ] Input validation with Marshmallow
-- [ ] Proper error responses
+- [X] POST /api/v1/auth/register
+- [X] POST /api/v1/auth/login  
+- [X] POST /api/v1/auth/logout
+- [X] POST /api/v1/auth/refresh
+- [X] Input validation with Marshmallow
+- [X] Proper error responses
 
 **Files to create:**
 - `auth_microservice_app/auth/__init__.py`
