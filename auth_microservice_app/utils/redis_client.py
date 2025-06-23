@@ -2,10 +2,11 @@
 Redis client for JWT token blacklist management.
 """
 
-import os
 import socket
 import logging
 from typing import Optional, Dict, Any
+from datetime import datetime, timezone
+import json
 import redis
 from redis.exceptions import ConnectionError, TimeoutError, RedisError
 
@@ -17,7 +18,7 @@ class RedisClient:
     def __init__(self):
        self._client: Optional[redis.Redis] = None
        self._pool: Optional[redis.ConnectionPool] = None
-       self._connected : bool = False
+       self._connected: bool = False
        
     def init_app(self, app):
         """
@@ -49,11 +50,10 @@ class RedisClient:
                 socket_connect_timeout=socket_connect_timeout,
                 socket_keepalive=True,
                 socket_keepalive_options={
-                socket.TCP_KEEPIDLE: 1,
-                socket.TCP_KEEPINTVL: 2,
-                socket.TCP_KEEPCNT: 5,
+                    socket.TCP_KEEPIDLE: 1,
+                    socket.TCP_KEEPINTVL: 2,
+                    socket.TCP_KEEPCNT: 5,
                 }   
-
             )
             
             # Create Redis client
@@ -70,6 +70,7 @@ class RedisClient:
         except Exception as e:
             logger.error(f"❌ Unexpected Redis error: {e}")
             self._connected = False
+    
     @property
     def is_connected(self) -> bool:
         """Check if Redis is connected."""
@@ -81,7 +82,7 @@ class RedisClient:
             if self._client:
                 self._client.ping()
                 return True
-        except:
+        except Exception:
             self._connected = False
         return False
     
@@ -165,9 +166,126 @@ class RedisClient:
             logger.error(f"Failed to remove from blacklist: {e}")
             return False
     
+    def set_user_logout_all_timestamp(self, user_id: str) -> bool:
+        """
+        Set timestamp when user logged out from all devices.
+        
+        Args:
+            user_id: User identifier
+            
+        Returns:
+            Success status
+        """
+        if not self._connected or not self._client:
+            return False
+            
+        try:
+            key = f"user:logout_all:{user_id}"
+            timestamp = int(datetime.now(timezone.utc).timestamp())
+            expiration_seconds = 30 * 24 * 60 * 60  # 30 days
+            self._client.setex(key, expiration_seconds, timestamp)
+            
+            logger.info(f"Set logout_all timestamp for user {user_id}: {timestamp}")
+            return True
+            
+        except RedisError as e:
+            logger.error(f"Failed to set logout_all timestamp: {e}")
+            return False
+    
+    def get_logout_all_timestamp(self, user_id: str) -> Optional[int]:
+        """
+        Get timestamp when user was logged out from all devices.
+        
+        Args:
+            user_id: User identifier
+            
+        Returns:
+            Timestamp or None
+        """
+        if not self._connected or not self._client:
+            return None
+            
+        try:
+            key = f"user:logout_all:{user_id}"
+            value = self._client.get(key)
+            return int(value) if value else None
+            
+        except (RedisError, ValueError):
+            return None
+    
+    def clear_logout_all_flag(self, user_id: str) -> bool:
+        """
+        Clear the logout_all flag for a user.
+        
+        Args:
+            user_id: User identifier
+            
+        Returns:
+            Success status
+        """
+        if not self._connected or not self._client:
+            return False
+            
+        try:
+            key = f"user:logout_all:{user_id}"
+            return self._client.delete(key) > 0
+            
+        except RedisError as e:
+            logger.error(f"Failed to clear logout_all flag: {e}")
+            return False
+    
+    def whitelist_token(self, jti: str, user_id: str, expires_delta: int = None) -> bool:
+        """
+        Whitelist a specific token to survive logout_all.
+        
+        Args:
+            jti: JWT ID to whitelist
+            user_id: User identifier
+            expires_delta: Seconds until token expires
+            
+        Returns:
+            Success status
+        """
+        if not self._connected or not self._client:
+            return False
+            
+        try:
+            key = f"whitelist:{user_id}:{jti}"
+            # Set with same expiration as the token or default 30 days
+            expiration_seconds = expires_delta or (30 * 24 * 60 * 60)
+            self._client.setex(key, expiration_seconds, "true")
+            logger.info(f"Token {jti} whitelisted for user {user_id}")
+            return True
+            
+        except RedisError as e:
+            logger.error(f"Failed to whitelist token: {e}")
+            return False
+    
+    def is_token_whitelisted(self, jti: str, user_id: str) -> bool:
+        """
+        Check if a token is whitelisted.
+        
+        Args:
+            jti: JWT ID to check
+            user_id: User identifier
+            
+        Returns:
+            True if whitelisted
+        """
+        if not self._connected or not self._client:
+            return False
+            
+        try:
+            key = f"whitelist:{user_id}:{jti}"
+            return self._client.exists(key) > 0
+            
+        except RedisError:
+            return False
+    
     def clear_user_tokens(self, user_id: str) -> int:
         """
         Clear all tokens for a specific user (logout from all devices).
+        This is now deprecated in favor of set_user_logout_all_timestamp.
         
         Args:
             user_id: User identifier
@@ -175,25 +293,14 @@ class RedisClient:
         Returns:
             Number of tokens cleared
         """
-        if not self._connected or not self._client:
-            return 0
-            
-        try:
-            # Set a flag that will be checked during token validation
-            key = f"user:logout_all:{user_id}"
-            # Set with 30 day expiration (longer than any token)
-            self._client.setex(key, 30 * 24 * 60 * 60, "true")
-            
-            logger.info(f"Set logout_all flag for user {user_id}")
-            return 1
-            
-        except RedisError as e:
-            logger.error(f"Failed to set logout_all flag: {e}")
-            return 0
+        # Redirect to new method
+        success = self.set_user_logout_all_timestamp(user_id)
+        return 1 if success else 0
     
     def is_user_logged_out_all(self, user_id: str) -> bool:
         """
         Check if user has been logged out from all devices.
+        This is now deprecated in favor of get_logout_all_timestamp.
         
         Args:
             user_id: User identifier
@@ -201,15 +308,78 @@ class RedisClient:
         Returns:
             True if user logged out from all devices
         """
+        return self.get_logout_all_timestamp(user_id) is not None
+    
+    def track_user_session(self, user_id: str, jti: str, session_info: Dict[str, Any]) -> bool:
+        """
+        Track an active user session (for future device management).
+        
+        Args:
+            user_id: User identifier
+            jti: JWT ID for the session
+            session_info: Information about the session (device, IP, etc.)
+            
+        Returns:
+            Success status
+        """
         if not self._connected or not self._client:
             return False
             
         try:
-            key = f"user:logout_all:{user_id}"
-            return self._client.exists(key) > 0
+            key = f"sessions:{user_id}:{jti}"
+            session_data = {
+                "jti": jti,
+                "user_id": user_id,
+                "created_at": datetime.now(timezone.utc).isoformat(),
+                **session_info
+            }
             
-        except RedisError:
+            # Store session with expiration matching token lifetime
+            expires_delta = session_info.get('expires_delta', 86400)  # Default 24h
+            self._client.setex(key, expires_delta, json.dumps(session_data))
+            
+            # Also maintain a set of active sessions for quick lookup
+            set_key = f"user:sessions:{user_id}"
+            self._client.sadd(set_key, jti)
+            self._client.expire(set_key, 30 * 24 * 60 * 60)  # 30 days
+            
+            logger.info(f"Session tracked for user {user_id}: {jti}")
+            return True
+            
+        except RedisError as e:
+            logger.error(f"Failed to track session: {e}")
             return False
+    
+    def get_user_sessions(self, user_id: str) -> list:
+        """
+        Get all active sessions for a user (for future device management).
+        
+        Args:
+            user_id: User identifier
+            
+        Returns:
+            List of session information
+        """
+        if not self._connected or not self._client:
+            return []
+            
+        try:
+            sessions = []
+            pattern = f"sessions:{user_id}:*"
+            
+            for key in self._client.scan_iter(pattern, count=100):
+                try:
+                    session_data = self._client.get(key)
+                    if session_data:
+                        sessions.append(json.loads(session_data))
+                except (ValueError, TypeError):
+                    continue
+            
+            return sessions
+            
+        except RedisError as e:
+            logger.error(f"Failed to get user sessions: {e}")
+            return []
     
     def get_blacklist_stats(self) -> Dict[str, Any]:
         """
@@ -226,11 +396,15 @@ class RedisClient:
             access_tokens = sum(1 for _ in self._client.scan_iter("blacklist:access:*", count=1000))
             refresh_tokens = sum(1 for _ in self._client.scan_iter("blacklist:refresh:*", count=1000))
             logout_all_users = sum(1 for _ in self._client.scan_iter("user:logout_all:*", count=1000))
+            whitelisted_tokens = sum(1 for _ in self._client.scan_iter("whitelist:*", count=1000))
+            active_sessions = sum(1 for _ in self._client.scan_iter("sessions:*", count=1000))
             
             return {
                 "access_tokens_blacklisted": access_tokens,
                 "refresh_tokens_blacklisted": refresh_tokens,
                 "users_logged_out_all": logout_all_users,
+                "whitelisted_tokens": whitelisted_tokens,
+                "active_sessions": active_sessions,
                 "total_blacklisted": access_tokens + refresh_tokens
             }
             
