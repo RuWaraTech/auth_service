@@ -2,7 +2,6 @@
 Redis client for JWT token blacklist management.
 """
 
-import os
 import socket
 import logging
 from typing import Optional, Dict, Any
@@ -17,7 +16,7 @@ class RedisClient:
     def __init__(self):
        self._client: Optional[redis.Redis] = None
        self._pool: Optional[redis.ConnectionPool] = None
-       self._connected : bool = False
+       self._connected: bool = False
        
     def init_app(self, app):
         """
@@ -81,7 +80,7 @@ class RedisClient:
             if self._client:
                 self._client.ping()
                 return True
-        except:
+        except Exception:
             self._connected = False
         return False
     
