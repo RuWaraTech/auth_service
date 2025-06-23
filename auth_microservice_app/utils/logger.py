@@ -1,8 +1,7 @@
 import logging
 import os
 import sys
-import uuid
-from flask import request, has_request_context, g
+from flask import has_request_context, g
 from pythonjsonlogger import jsonlogger
 
 
