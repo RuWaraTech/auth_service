@@ -39,8 +39,8 @@ def upgrade():
         batch_op.create_index(batch_op.f('ix_user_sessions_user_id'), ['user_id'], unique=False)
 
     with op.batch_alter_table('users', schema=None) as batch_op:
-        batch_op.add_column(sa.Column('is_active', sa.Boolean(), nullable=False))
-        batch_op.add_column(sa.Column('failed_login_attempts', sa.Integer(), nullable=False))
+        batch_op.add_column(sa.Column('is_active', sa.Boolean(), nullable=False, server_default=sa.text('true')))
+        batch_op.add_column(sa.Column('failed_login_attempts', sa.Integer(), nullable=False, server_default='0'))
         batch_op.add_column(sa.Column('locked_until', sa.DateTime(), nullable=True))
         batch_op.alter_column('created_at',
                existing_type=sa.DATETIME(),
