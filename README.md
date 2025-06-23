@@ -247,12 +247,12 @@ auth-service/
 **Description:** Create User model with authentication fields  
 
 **Acceptance Criteria:**
-- [ ] User model with email, password_hash, etc.
-- [ ] Password hashing utilities
-- [ ] Email validation
-- [ ] Timestamps (created_at, updated_at)
-- [ ] User verification status
-- [ ] Database migrations created
+- [X] User model with email, password_hash, etc.
+- [X] Password hashing utilities
+- [X] Email validation
+- [X] Timestamps (created_at, updated_at)
+- [X] User verification status
+- [X] Database migrations created
 
 **File to create:**
 - `auth_microservice_app/models/user.py`
