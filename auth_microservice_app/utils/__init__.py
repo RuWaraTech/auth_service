@@ -14,7 +14,7 @@ from auth_microservice_app.utils.jwt_utils import (
 )
 from auth_microservice_app.utils.logger import setup_logger
 from auth_microservice_app.utils.redis_client import redis_client, init_redis
-
+from auth_microservice_app.utils.limiter import limiter, init_limiter
 __all__ = [
     # JWT utilities
     "jwt",
@@ -34,4 +34,6 @@ __all__ = [
     # Redis
     "redis_client",
     "init_redis",
+    "limiter",
+    "init_limiter"
 ]
