@@ -12,6 +12,7 @@ import re
 
 from auth_microservice_app.models import db, User
 from auth_microservice_app.utils.jwt_utils import generate_tokens
+from auth_microservice_app.utils import limiter
 
 # Create blueprint for core auth (register/login only)
 core_auth_bp = Blueprint('core_auth', __name__)
@@ -160,6 +161,7 @@ def create_error_response(error_code, message, status_code=400, details=None):
 
 # Routes
 @core_auth_bp.route('/register', methods=['POST'])
+@limiter.limit(lambda: current_app.config.get('RATE_LIMIT_REGISTER'))
 def register():
     """
     Register a new user.
@@ -250,6 +252,7 @@ def register():
 
 
 @core_auth_bp.route('/login', methods=['POST'])
+@limiter.limit(lambda: current_app.config.get('RATE_LIMIT_LOGIN'))
 def login():
     """
     Authenticate user and return tokens.
