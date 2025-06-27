@@ -3,7 +3,7 @@ from flask_migrate import Migrate
 from auth_microservice_app.models import db
 from auth_microservice_app.flask_config import get_config
 from auth_microservice_app.routes import register_all_blueprints
-from auth_microservice_app.utils import setup_logger, init_jwt, init_redis
+from auth_microservice_app.utils import setup_logger, init_jwt, init_redis, init_limiter
 from auth_microservice_app.middleware.logging import request_id_middleware
 
 def create_app():
@@ -29,7 +29,10 @@ def create_app():
     
     # Initialize JWT with Redis blacklist support
     init_jwt(app)
-    
+
+    # Initialize rate limiter
+    init_limiter(app)
+
     # Initialize database
     db.init_app(app)
     Migrate(app, db)

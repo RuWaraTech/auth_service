@@ -73,6 +73,9 @@ class Config:
         
         # Rate limiting
         self.RATE_LIMIT_DEFAULT = os.environ.get('RATE_LIMIT_DEFAULT', '100 per hour')
+        self.RATE_LIMIT_LOGIN = os.environ.get('RATE_LIMIT_LOGIN', '10 per minute')
+        self.RATE_LIMIT_REGISTER = os.environ.get('RATE_LIMIT_REGISTER', '5 per minute')
+        self.RATELIMIT_HEADERS_ENABLED = True
         
         # CORS
         self.CORS_ORIGINS = os.environ.get('CORS_ORIGINS', '*').split(',')
