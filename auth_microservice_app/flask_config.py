@@ -83,7 +83,7 @@ class DevConfig(Config):
     
     def __init__(self):
         # Set development defaults before calling parent
-        os.environ.setdefault('FLASK_ENV', 'dev')
+        # Only set defaults if they're not already set in environment
         if not os.environ.get('SECRET_KEY'):
             os.environ['SECRET_KEY'] = 'dev-secret-key-UNSAFE-ONLY-FOR-DEV'
             print("Warning: Using default SECRET_KEY for development")
@@ -123,7 +123,6 @@ class StagConfig(Config):
     """Staging configuration."""
     
     def __init__(self):
-        os.environ['FLASK_ENV'] = 'stag'
         super().__init__()
         
         # Staging specific settings
@@ -162,7 +161,6 @@ class ProdConfig(Config):
     """Production configuration."""
     
     def __init__(self):
-        os.environ['FLASK_ENV'] = 'prod'
         super().__init__()
         
         # Production specific settings
@@ -216,9 +214,10 @@ class TestConfig(Config):
     
     def __init__(self):
         # Set test defaults
-        os.environ.setdefault('FLASK_ENV', 'test')
-        os.environ.setdefault('SECRET_KEY', 'test-secret-key')
-        os.environ.setdefault('JWT_SECRET_KEY', 'test-jwt-secret-key')
+        if not os.environ.get('SECRET_KEY'):
+            os.environ['SECRET_KEY'] = 'test-secret-key'
+        if not os.environ.get('JWT_SECRET_KEY'):
+            os.environ['JWT_SECRET_KEY'] = 'test-jwt-secret-key'
         
         super().__init__()
         

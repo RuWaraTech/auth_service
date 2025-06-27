@@ -14,9 +14,11 @@ def create_app():
         Flask application instance
     """
     app = Flask(__name__)
-    
+    config = get_config()
+    print(f"Loading configuration for environment: {config.FLASK_ENV}")  # Debug line
+    app.config.from_object(config)
     # Load configuration
-    app.config.from_object(get_config())
+    # app.config.from_object(get_config())
     
     # Initialize logging
     setup_logger()
