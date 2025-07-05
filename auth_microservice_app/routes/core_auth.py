@@ -251,8 +251,11 @@ def register():
         )
 
 
+# def get_login_rate_limit():
+#     return current_app.config.get('RATE_LIMIT_LOGIN', '10 per minute')
+
 @core_auth_bp.route('/login', methods=['POST'])
-@limiter.limit(lambda: current_app.config.get('RATE_LIMIT_LOGIN'))
+@limiter.limit("3 per minute")
 def login():
     """
     Authenticate user and return tokens.
